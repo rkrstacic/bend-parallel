@@ -1,59 +1,22 @@
-# Circle
-# - get radius
-# - get area
-# Square
-# - get circumference
-# - get area
+def Map.set(map, key, val):
+  map[key] = val
+  return map
 
-type Shape:
-  Circle { radius }
-  Rectangle { width, height }
+Map.fill.aux = @map @keys @val
+  use map = (Map.set map keys val)
+  switch keys {
+    0: map
+    _: (Map.fill.aux map (- keys 1) val)
+  }
 
-def area(shape):
-  match shape:
-    case Shape/Circle:
-      return 3.14 * shape.radius ** 2.0
-    case Shape/Rectangle:
-      return shape.width * shape.height
+Map.fill = @keys
+  (Map.fill.aux Map/empty keys 0)
 
-def circumference(shape):
-  match shape:
-    case Shape/Circle:
-      return shape.radius * 2.0 * 3.14
-    case Shape/Rectangle:
-      return shape.width * 2.0 + shape.height * 2.0
+Map.increment = @map @key @val
+  use curr = map[key]
+  map[key] = (+ curr val)
+  map
 
-def fib_par(n):
-  switch n:
-    case 0:
-      return 0
-    case 1:
-      return 1
-    case _:
-      return fib_par(n - 1) + fib_par(n - 2)
-
-def fib_seq(n):
-  bend a=0, b=1, n:
-    when n != 0:
-      return fork(b, a + b, n - 1)
-    else:
-      return a
-
-def test_fib(fn):
-  return (
-    fn(1) == 1 &
-    fn(2) == 1 &
-    fn(3) == 2 &
-    fn(4) == 3 &
-    fn(5) == 5
-  )
-
-def test_fibs():
-  if test_fib(fib_par) & test_fib(fib_seq):
-    return "Passes"
-  else:
-    return "Fails"
-
-
-def main(x):
-  return fib_seq(x)
+def main():
+  map = Map.fill(3)
+  return map[2]

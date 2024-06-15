@@ -4,8 +4,10 @@ tasks:
   run:
     cmds:
       - bend run src/main.bend
+    desc: Run the main.bend file
       
   runc:
     cmds:
       - bend run-c src/main.bend -s
+    desc: Run the main.bend file parallelly
   
