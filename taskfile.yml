@@ -3,7 +3,7 @@ version: '3'
 tasks:
   run:
     cmds:
-      - bend run src/main.bend
+      - bend run src/main.bend -s
     desc: Run the main.bend file
       
   runc:

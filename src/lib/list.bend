@@ -175,17 +175,25 @@ List/is_pair = @list
 # List to btree:
 # List l -> List l
 # groups elements into binary tree list. [1, 2, 3, 4, 5] -> [[[1, 2], [3, 4]], [[5, []], [[], []]]
-List.to_btree.aux = @l
+List/to_btree/aux = @l
   match l {
-    List/Cons: (List/Cons [l.head, (List.head l.tail)] (List.to_btree.aux (List.tail l.tail)))
+    List/Cons: (List/Cons [l.head, (List.head l.tail)] (List/to_btree/aux (List/tail l.tail)))
     List/Nil: l
   }
 
-List.to_btree = @l
-  use btree = (List.to_btree.aux l)
-  switch (List.is_pair btree) {
-    0: (List.to_btree btree)
+List/to_btree = @l
+  use btree = (List/to_btree/aux l)
+  switch (List/is_pair btree) {
+    0: (List/to_btree btree)
     _: btree
+  }
+
+# List map:
+# List l -> fn -> List l
+List/map = @list @fn
+  fold list {
+    List/Cons: (List/Cons (fn list.head) list.tail)
+    List/Nil: List/Nil   
   }
 
 #################################
@@ -206,3 +214,5 @@ def main:
 #  return List/add_front([2, 3], 1)
 #  return List/concat([1, 2], [3, 4])
 #  return List/is_pair([1, 2])
+#  return List/to_btree([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+#  return List/map([1, 2, 3, 4, 5], (fn (x) => (+ x 1)))
