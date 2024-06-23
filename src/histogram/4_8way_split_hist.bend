@@ -52,6 +52,31 @@ List.to_btree = @l
     0: (List.to_btree btree)
     _: btree
   }
+  
+List.add.aux = @map @l
+  use index = 0
+  fold l with map, index {
+    List/Cons: (l.tail (Map.increment map index l.head) (+ index 1))
+    List/Nil: map
+  }
+
+def List.add_two_lists(a, b):
+  temp = Map.fill(List.len(a))
+  temp = List.add.aux(temp, a)
+  temp = List.add.aux(temp, b)
+  return map_to_list(temp, List.len(a) - 1)
+
+def List.add_all_lists(l):
+  len = List.len(List.head(l))
+  temp = Map.fill(len)
+  
+  fold l with temp:
+    case List/Cons: 
+      temp = List.add.aux(temp, l.head)
+      return l.tail(temp)
+    case List/Nil:
+      return map_to_list(temp, len - 1)
+
 
 ##
 # Map Helper functions
@@ -90,19 +115,7 @@ get_inc = @el @ranges
     List/Cons: if (> el ranges.head) { (ranges.tail (+ i 1)) } else { i }
     List/Nil: i
   }
-
-
-# def histogram(list, ranges):
-#   ans = Map.fill(List.len(ranges))
-  
-#   fold list with ans:
-#     case List/Cons:
-#       return list.tail(Map.increment(ans, get_inc(list.head, ranges), 1))
-      
-#     case List/Nil:
-#       return ans
-      
-      
+ 
 histogram = @list @ranges
   use ans = (Map.fill (List.len ranges))
   
@@ -130,50 +143,28 @@ def data_gen(n, offset):
   
   return data
 
-
-def data_gen_two_arrays(n):
-  return [data_gen(n / 2, 0), data_gen(n / 2, n / 2)]
-
-
-List.add.aux = @map @l
-  use index = 0
-  fold l with map, index {
-    List/Cons: (l.tail (Map.increment map index l.head) (+ index 1))
-    List/Nil: map
-  }
-
-def List.add_two_lists(a, b):
-  temp = Map.fill(List.len(a))
-  temp = List.add.aux(temp, a)
-  temp = List.add.aux(temp, b)
-  return map_to_list(temp, List.len(a) - 1)
-
-def List.add_all_lists(l):
-  len = List.len(List.head(l))
-  temp = Map.fill(len)
-  
-  fold l with temp:
-    case List/Cons: 
-      temp = List.add.aux(temp, l.head)
-      return l.tail(temp)
-    case List/Nil:
-      return map_to_list(temp, len - 1)
+def data_gen_n_arrays(num_of_elements, num_of_arrays):
+  use sub_array_size = num_of_elements / num_of_arrays
+  bend x = 0:
+    when x < num_of_arrays:
+      return List/Cons(data_gen(sub_array_size, x * sub_array_size), fork(x + 1))
+    else:
+      return List/Nil
 
 ##
 # Benchmark
 #
 # Sequential
-# - ITRS: 406804865
-# - TIME: 7.52s
-# - MIPS: 54.09
+# - ITRS: 406815361
+# - TIME: 7.53s
+# - MIPS: 54.05
 #
 # Parallel
-# - ITRS: 406804866
-# - TIME: 3.19s
-# - MIPS: 127.47
-#
+# - ITRS: 406815362
+# - TIME: ~1.5s
+# - MIPS: 301.09
 def main():
-  data = data_gen_two_arrays(1_000_000)
+  data = data_gen_n_arrays(1_000_000, 8)
   ranges = [200_000, 700_000]
 
   fn = lambda el: map_to_list(histogram(el, ranges), List.len(ranges))
