@@ -77,6 +77,12 @@ def List.add_all_lists(l):
     case List/Nil:
       return map_to_list(temp, len - 1)
 
+List.map = @list @fn
+  fold list {
+    List/Cons: (List/Cons (fn list.head) list.tail)
+    List/Nil: List/Nil   
+  }
+
 
 ##
 # Map Helper functions
@@ -97,13 +103,6 @@ def Map.increment(map, key, val):
   curr = map[key]
   
   return Map/set(map, key, curr + val)
-
-List.map = @list @fn
-  fold list {
-    List/Cons: (List/Cons (fn list.head) list.tail)
-    List/Nil: List/Nil   
-  }
-
 
 ## 
 # Main

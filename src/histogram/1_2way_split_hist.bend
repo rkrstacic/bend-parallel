@@ -78,6 +78,12 @@ def List.add_all_lists(l):
       return map_to_list(temp, len - 1)
 
 
+List.map = @list @fn
+  fold list {
+    List/Cons: (List/Cons (fn list.head) list.tail)
+    List/Nil: List/Nil   
+  }
+
 ##
 # Map Helper functions
 #
@@ -97,12 +103,6 @@ def Map.increment(map, key, val):
   curr = map[key]
   
   return Map/set(map, key, curr + val)
-
-List.map = @list @fn
-  fold list {
-    List/Cons: (List/Cons (fn list.head) list.tail)
-    List/Nil: List/Nil   
-  }
 
 
 ## 
@@ -156,10 +156,17 @@ def data_gen_two_arrays(n):
 # - TIME: 7.52s
 # - MIPS: 54.09
 #
+# 0.75s on generating data
+#
+#
 # Parallel
 # - ITRS: 406804866
 # - TIME: 3.19s
 # - MIPS: 127.47
+#
+# 0.57s on generating data
+# 1.64 on partial histograms
+# 0.98 on adding partial histograms
 #
 def main():
   data = data_gen_two_arrays(1_000_000)
