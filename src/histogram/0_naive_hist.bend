@@ -25,33 +25,6 @@ List.len = @l
     List/Cons: (+ 1 (List.len l.tail))
   }
 
-List.is_pair.aux = @list @iter
-  match list {
-    List/Cons: switch iter {
-      0: 0
-      _: (List.is_pair.aux list.tail (- iter 1))
-    }
-    List/Nil: switch iter {
-      0: 1
-      _: 0
-    }
-  }
-
-List.is_pair = @list
-  (List.is_pair.aux list 2)
-  
-List.to_btree.aux = @l
-  match l {
-    List/Cons: (List/Cons [l.head, (List.head l.tail)] (List.to_btree.aux (List.tail l.tail)))
-    List/Nil: l
-  }
-
-List.to_btree = @l
-  use btree = (List.to_btree.aux l)
-  switch (List.is_pair btree) {
-    0: (List.to_btree btree)
-    _: btree
-  }
 
 ##
 # Map Helper functions
@@ -67,8 +40,6 @@ Map.fill = @keys
   (Map.fill.aux Map/empty keys 0)
 
 def Map.increment(map, key, val):
-  # Map.increment = @map @key @val
-  #   (Map/set map key (+ (map[key]) val))
   curr = map[key]
   
   return Map/set(map, key, curr + val)
@@ -83,19 +54,7 @@ get_inc = @el @ranges
   fold ranges with i {
     List/Cons: if (> el ranges.head) { (ranges.tail (+ i 1)) } else { i }
     List/Nil: i
-  }
-
-
-# def histogram(list, ranges):
-#   ans = Map.fill(List.len(ranges))
-  
-#   fold list with ans:
-#     case List/Cons:
-#       return list.tail(Map.increment(ans, get_inc(list.head, ranges), 1))
-      
-#     case List/Nil:
-#       return ans
-      
+  }     
       
 histogram = @list @ranges
   use ans = (Map.fill (List.len ranges))
@@ -112,17 +71,16 @@ def map_to_list.aux(map, i, acc):
     case _:
       return List/Cons(map[acc], map_to_list.aux(map, i - 1, acc + 1))
 
-def map_to_list(map, i):
-  return map_to_list.aux(map, i, 0)
+map_to_list = @map @i
+  (map_to_list.aux map i 0)
 
-def data_gen(n):  
-  bend x = 0:
-    when x < n:
-      data = List/Cons(x, fork(x + 1))
+data_gen = @n  
+  bend x = 0 {
+    when (< x n):
+      (List/Cons x (fork (+ x 1)))
     else:
-      data = List/Nil
-  
-  return data
+      List/Nil  
+  }
 
 ##
 # Benchmark

@@ -1,0 +1,30 @@
+arr1 = [1, 2, 3, 4, 5, 6]
+arr2 = [1, 2, 3, 4, 5, 6]
+
+result = []
+
+// First element
+// arr1 = [1...]
+// arr2 = [1...]
+s = 0
+s += arr1.first() + arr2.first()
+result[0] = s
+
+// Second element
+// arr1 = [1, 2...]
+// arr2 = [1, 2...]
+s = 0
+s += arr1.first() + arr2.rest().first()
+s += arr1.rest().first() + arr2.first()
+result[1] = s
+
+// Third element
+// arr1 = [1, 2, 3...]
+// arr2 = [1, 2, 3...]
+s = 0
+s += arr1.first() + arr2.rest().rest().first()
+s += arr1.rest().first() + arr2.rest().first()
+s += arr1.rest().rest().first() + arr2.first()
+result[2] = s
+
+Sljedece za napravit je konvolucija
