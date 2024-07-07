@@ -196,18 +196,18 @@ List.fconvolve = @arr1 @arr2
   (List.zip_with List.fdot (List.triangle arr1) (List.reverse (List.triangle (List.reverse arr2))))
 
 ##
-# Benchmark 300
+# Benchmark 256
 #
 # Sequential
-# - ITRS: 516670914
-# - TIME: 9.78s
-# - MIPS: 52.85
+# - ITRS: 322356495
+# - TIME: 5.15s
+# - MIPS: 62.59
 #
 # Parallel
-# - ITRS: 516670914
-# - TIME: 2.17s
-# - MIPS: 238.32
+# - ITRS: 322356495
+# - TIME: 1.07s
+# - MIPS: 301.40
 def main():
-  data1 = data_gen(300)
-  data2 = data_gen(300)
+  data1 = data_gen(256)
+  data2 = data_gen(256)
   return List.len(List.convolve(data1, data2))

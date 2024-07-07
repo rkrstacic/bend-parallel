@@ -23,6 +23,7 @@
 # - List/head
 # - List/index
 # - List/is_pair
+# - List/is_single
 # - List/len
 # - List/map
 # - List/pop_back
@@ -229,6 +230,16 @@ List/is_pair = @list
 
 #
 #
+# List is single:
+#   Checks if list has a length of 1 (with early return).
+# Example:
+#   [1] -> 1
+#   [1, 2] -> 0
+List/is_single = @list
+  (List/is_pair/aux list 1)
+
+#
+#
 # List length:
 #   returns the number of elements in list
 # Example:
@@ -313,7 +324,7 @@ List/reverse = @l
 List/reversed_tails/aux = @arr @acc
   match arr {
     List/Cons: (List/Cons acc (List/reversed_tails/aux arr.tail (List/Cons arr.head acc)))
-    List/Nil: [acc]
+    List/Nil: []
   }
 
 List/reversed_tails = @arr
@@ -410,15 +421,14 @@ List/triangle = @arr
 #   (fn (x, y) => x * y), [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 9, 16]
 List/zip_with = @fn @arr1 @arr2
   fold arr1 with arr2 {
-    List/Cons: (List/Cons (fn arr1/head (List/head arr2)) (arr1/tail (List/tail arr2)))
+    List/Cons: (List/Cons (fn arr1.head (List/head arr2)) (arr1.tail (List/tail arr2)))
     List/Nil: List/Nil
   }
 
 #################################
 
 # Example usage of the functions above:
-def main:
-  return [1, 2, 3]
+# def main:
 #  return List/add_front([2, 3], 1)
 #  return List/append([1, 2], 3)
 #  return List/clear([0, 2, 3])
@@ -438,6 +448,8 @@ def main:
 #  return List/is_pair([1])
 #  return List/is_pair([1, 2])
 #  return List/is_pair([1, 2, 3])
+#  return List/is_single([1])
+#  return List/is_single([1, 2])
 #  return List/len([1, 2, 3, 4, 4, 4])
 #  return List/map([1, 2, 3, 4, 5], (lambda x: x + 1))
 #  return List/pop_back([1, 2, 3, 4])

@@ -43,7 +43,6 @@ Map/fill = @keys
 #################################
 
 # Example usage of the functions above:
-def main:
-  return {0: 0, 1: 0, 2: 0}
+# def main:
   # return Map/fill(3)
   # return Map/increment({0: 1, 1: 2}, 1, 1)

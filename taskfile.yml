@@ -11,3 +11,9 @@ tasks:
       - bend run-c src/main.bend -s
     desc: Run the main.bend file parallelly
   
+  lib-gen:
+    cmds:
+      - mkdir -p src/gen && cat src/lib/*.bend > src/gen/merged_lib.bend && echo "Merged lib files in src/gen/merged_lib.bend"
+    desc: 
+      Generate a merged lib file from all the lib files in /src/lib
+  
