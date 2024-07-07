@@ -14,7 +14,9 @@
 # - List/concat
 # - List/convolve
 # - List/count
+# - List/create
 # - List/dot
+# - List/dot/with.Tree
 # - List/fconvolve
 # - List/fdot
 # - List/fsum
@@ -30,6 +32,7 @@
 # - List/reversed_tails
 # - List/split
 # - List/sum
+# - List/tail
 # - List/tails
 # - List/to_btree
 # - List/triangle
@@ -87,7 +90,21 @@ List/concat = @l1 @l2
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 10, 20, 25, 24, 16]
 List/convolve = @arr1 @arr2
   (List/zip_with List/dot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
- 
+
+#
+#
+# List create:
+#   creates a list of n elements, all with the same value.
+# Example:
+#   3, 4 -> [4, 4, 4]
+List/create = @n @val
+  bend x = 0 {
+    when (< x n):
+      (List/Cons val (List/create (- n 1) val))
+    else:
+      List/Nil
+  }
+
 #
 #
 # List count:
@@ -115,6 +132,17 @@ List/count = @l @s
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> 30
 List/dot = @arr1 @arr2
   (List/sum (List/zip_with (@x @y (* x y)) arr1 arr2))
+
+#
+#
+# List dot with Tree:
+#   Dot product of two lists with Tree
+# Example:
+#   [1, 2, 3, 4], [1, 2, 3, 4] -> 30
+List/dot/with.Tree = @l1 @l2
+  use t1 = (Tree/from_list l1)
+  use t2 = (Tree/from_list l2)
+  (Tree/to_list (Tree/sum (Tree/zip_with Number/mul t1 t2)))
 
 #
 #
@@ -324,6 +352,17 @@ List/sum = @l
 
 #
 #
+# List tail:
+#   Returns the list without the first element, or [] if the list is empty.
+# Example:
+#   [1, 2, 3] -> [2, 3]
+List/tail = @l
+  match l {
+    List/Cons: l.tail
+    List/Nil: l
+  }
+#
+#
 # List tails:
 #   Returns an array of all tails of list
 # Example:
@@ -386,7 +425,9 @@ def main:
 #  return List/concat([1, 2], [3, 4])
 #  return List/convolve([1, 2, 3, 4], [1, 2, 3, 4])
 #  return List/count([1, 2, 3, 3, 3, 4, 4, 5, 3, 1000], 4)
+#  return List/create(3, 4)
 #  return List/dot([1, 2, 3, 4], [1, 2, 3, 4])
+#  return List/dot/with.Tree([1, 2, 3, 4], [1, 2, 3, 4])
 #  return List/fconvolve([0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4])
 #  return List/fdot([0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4])
 #  return List/fsum([0.1, 0.2, 0.3])
@@ -406,6 +447,7 @@ def main:
 #  return List/reversed_tails([1, 2, 3, 4])
 #  return List/split([1, 2, 3, 4, 5, 6, 7], 3)
 #  return List/sum([1, 2, 3])
+#  return List/tail([1, 2, 3])
 #  return List/tails([1, 2, 3, 4])
 #  return List/to_btree([1, 2, 3, 4, 5])
 #  return List/triangle([1, 2, 3, 4])

@@ -2,69 +2,6 @@ type Tree:
   Node { ~left, ~right }
   Leaf { value }
 
-List/concat = @l1 @l2
-  match l1 {
-    List/Cons: (List/Cons l1.head (List/concat l1.tail l2))
-    List/Nil: l2
-  }
-
-List/is_pair/aux = @list @iter
-  match list {
-    List/Cons: switch iter {
-      0: 0
-      _: (List/is_pair/aux list.tail (- iter 1))
-    }
-    List/Nil: switch iter {
-      0: 1
-      _: 0
-    }
-  }
-
-List/is_pair = @list
-  (List/is_pair/aux list 2)
-
-List/is_single = @list
-  (List/is_pair/aux list 1)
-
-List/head = @l
-  match l {
-    List/Cons: l.head
-    List/Nil: []
-  }
-
-List/tail = @l
-  match l {
-    List/Cons: l.tail
-    List/Nil: l
-  }
-
-List/map = @list @fn
-  fold list {
-    List/Cons: (List/Cons (fn list.head) list.tail)
-    List/Nil: List/Nil   
-  }
-
-
-List/len = @l
-  match l {
-    List/Nil: 0
-    List/Cons: (+ 1 (List/len l.tail))
-  }
-
-List/create = @n @val
-  bend x = 0 {
-    when (< x n):
-      (List/Cons val (List/create (- n 1) val))
-    else:
-      List/Nil
-  }
-
-List/dot/with.Tree = @l1 @l2
-  use t1 = (Tree/from_list l1)
-  use t2 = (Tree/from_list l2)
-  (Tree/to_list (Tree/sum (Tree/zip_with Number/mul t1 t2)))
-
-
 Tree/generate = @depth
   bend x = 0 {
     when (< x depth):
@@ -126,24 +63,3 @@ Tree/sum = @tree
     Tree/Node: (+ (tree.left) (tree.right))
     Tree/Leaf: tree.value
   }
-
-Number/next_power_of_two/aux = @n @x
-  if (> (+ x 1) n) {
-    x
-  } else {
-    (Number/next_power_of_two/aux n (* x 2))
-  }
-
-Number/next_power_of_two = @n
-  (Number/next_power_of_two/aux n 1)
-
-Number/needed_for_power_of_two = @n
-  (- (Number/next_power_of_two n) n)
-
-Number/mul = @x @y
-  (* x y)
-
-main =
-  use l1 = [1, 2, 3, 4, 5]
-  use l2 = [1, 2, 3, 4, 5]
-  (List/dot/with.Tree l1 l2)

@@ -159,7 +159,7 @@ data_gen2 = @n
 List.reversed.tails.aux = @arr @acc
   match arr {
     List/Cons: (List/Cons acc (List.reversed.tails.aux arr.tail (List/Cons arr.head acc)))
-    List/Nil: [acc]
+    List/Nil: []
   }
 
 List.reversed.tails = @arr
@@ -199,19 +199,15 @@ List.fconvolve = @arr1 @arr2
 # Benchmark 300
 #
 # Sequential
-# - ITRS: 516670914
-# - TIME: 9.78s
-# - MIPS: 52.85
+# - ITRS: 516580315
+# - TIME: 8.52s
+# - MIPS: 60.63
 #
 # Parallel
-# - ITRS: 516670914
-# - TIME: 2.17s
-# - MIPS: 238.32
-# def main():
-#   data1 = data_gen(300)
-#   data2 = data_gen(300)
-#   return List.len(List.convolve(data1, data2))
+# - ITRS: 516580315
+# - TIME: 2.10s
+# - MIPS: 246.46
 def main():
-  return List.map([1, 2, 3], (lambda x: x + 1))
-  # data1 = [1, 2, 3, 4]
-  # return List.reversed.tails(data1)
+  data1 = data_gen2(100)
+  data2 = data_gen2(100)
+  return List.len(List.convolve(data1, data2))
