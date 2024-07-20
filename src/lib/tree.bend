@@ -1,7 +1,3 @@
-type Tree:
-  Node { ~left, ~right }
-  Leaf { value }
-
 Tree/generate = @depth
   bend x = 0 {
     when (< x depth):
@@ -41,22 +37,32 @@ Tree/zip_with = @fn @tree1 @tree2
   }
 
 Tree/from_list/aux/new_layer = @l
-  match l {
-    List/Cons: (List/Cons (Tree/Node l.head (List/head l.tail)) (Tree/from_list/aux/new_layer (List/tail l.tail)))
-    List/Nil: List/Nil
+  use tmp = []
+  use res = []
+  fold l with tmp, res {
+    List/Cons: match tmp {
+      # previous el waiting for merge
+      List/Cons: (l.tail [] (List/Cons (Tree/Node l.head tmp.head) res))
+      List/Nil: (l.tail [l.head] res)
+    }
+    List/Nil: res
   }
 
-Tree/from_list/aux = @l
-  use btree = (Tree/from_list/aux/new_layer l)
-  switch (List/is_single btree) {
-    0: (Tree/from_list/aux btree)
-    _: btree
+Tree/from_list/aux = @l @iters
+  use btree = (Tree/from_list/aux/new_layer (List/reverse l))
+  switch iters {
+    0: btree
+    _: (Tree/from_list/aux btree (- iters 1))
   }
 
 Tree/from_list = @l
+  (Tree/from_list_val l 0)
+
+Tree/from_list_val = @l @val
+  use len_l = (List/len l)
   use mapped = (List/map l (@x (Tree/Leaf x)))
-  use extenstion = (List/create (Number/needed_for_power_of_two (List/len l)) (Tree/Leaf 0))
-  (List/head (Tree/from_list/aux (List/concat mapped extenstion)))
+  use extenstion = (List/create (Number/needed_for_power_of_two len_l) (Tree/Leaf val))
+  (List/head (Tree/from_list/aux (List/concat mapped extenstion) (- (Number/log2/int len_l) 1)))
 
 Tree/sum = @tree
   fold tree {

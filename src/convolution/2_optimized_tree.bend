@@ -574,15 +574,20 @@ Tree/zip_with = @fn @tree1 @tree2
     Tree/Leaf: (Tree/Leaf (fn tree1.value (Tree/value tree2)))
   }
 
-# TODO: Optimize this function
 Tree/from_list/aux/new_layer = @l
-  match l {
-    List/Cons: (List/Cons (Tree/Node l.head (List/head l.tail)) (Tree/from_list/aux/new_layer (List/tail l.tail)))
-    List/Nil: List/Nil
+  use tmp = []
+  use res = []
+  fold l with tmp, res {
+    List/Cons: match tmp {
+      # previous el waiting for merge
+      List/Cons: (l.tail [] (List/Cons (Tree/Node l.head tmp.head) res))
+      List/Nil: (l.tail [l.head] res)
+    }
+    List/Nil: res
   }
 
 Tree/from_list/aux = @l
-  use btree = (Tree/from_list/aux/new_layer l)
+  use btree = (Tree/from_list/aux/new_layer (List/reverse l))
   switch (List/is_single btree) {
     0: (Tree/from_list/aux btree)
     _: btree
@@ -669,35 +674,15 @@ List/convolve/with.Tree = @l1 @l2
 # Benchmark 256
 #
 # Sequential
-# - ITRS: 516580315
-# - TIME: 8.52s
-# - MIPS: 60.63
+# - ITRS: 112958324
+# - TIME: 1.77s
+# - MIPS: 63.74
 #
 # Parallel
-# - ITRS: 516580315
-# - TIME: 2.10s
-# - MIPS: 246.46
-
-# Triangles with list 0.07s
-# Triangles with tree 16s
-# TODO: Optimize tree approach
-# Specifically, the Tree/from_list/aux/new_layer function
-# That function calls List/head(l.tail) which is O(n) for each element
-
-
-test = @l
-  match l {
-    List/Cons: (List/Cons [l.head, (List/head l.tail)] (test (List/tail l.tail)))
-    List/Nil: List/Nil
-  }
-
+# - ITRS: 112958324
+# - TIME: 0.75s
+# - MIPS: 150.65
 main =
-  use data = (data_gen 128)
-  use mapped = (List/map data (@x data))
-  # (List/len data) # 1m iters
-  # (List/len (Tree/to_list (Tree/from_list_val (List/triangle data) [0]))) # 233m iters
-  
-  # (List/len (Tree/to_list (Tree/from_list_val mapped [0])))
-  (test mapped)
-  # (List/sum (List/map mapped (@x (List/sum x))))
-  
+  use data1 = (data_gen 256)
+  use data2 = (data_gen 256)
+  (List/len (List/convolve/with.Tree data1 data2))

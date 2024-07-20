@@ -13,3 +13,12 @@ Number/needed_for_power_of_two = @n
 
 Number/mul = @x @y
   (* x y)
+
+Number/log2/int/aux = @n @acc
+  switch n {
+    0: acc
+    _: (Number/log2/int/aux (/ n 2) (+ acc 1))
+  }
+
+Number/log2/int = @n
+  (Number/log2/int/aux (- n 1) 0)

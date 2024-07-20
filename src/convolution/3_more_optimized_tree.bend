@@ -1,3 +1,7 @@
+#
+# Included Library
+#
+
 ###########################################
 ### Singly-Linked List Type Definition: ###
 
@@ -73,7 +77,6 @@ List/clear = @l
 
 #
 #
-# <builtin>
 # List concat:
 #   combines two lists from left to right.
 # Example:
@@ -92,6 +95,7 @@ List/clear = @l
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 10, 20, 25, 24, 16]
 List/convolve = @arr1 @arr2
   (List/zip_with List/dot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
+  
 
 #
 #
@@ -237,7 +241,10 @@ List/is_pair = @list
 #   [1] -> 1
 #   [1, 2] -> 0
 List/is_single = @list
-  (List/is_pair/aux list 1)
+  match (List/tail list) {
+    List/Cons: 1
+    List/Nil: 0
+  }
 
 #
 #
@@ -245,11 +252,11 @@ List/is_single = @list
 #   returns the number of elements in list
 # Example:
 #   [1, 2, 3, 4, 4, 4] -> 6
-List/len = @l
-  match l {
-    List/Nil: 0
-    List/Cons: (+ 1 (List/len l.tail))
-  }
+# List/len = @l
+#   match l {
+#     List/Nil: 0
+#     List/Cons: (+ 1 (List/len l.tail))
+#   }
 
 #
 #
@@ -303,7 +310,6 @@ List/remove = @l @s
 
 #
 #
-# <builtin>
 # List reverse:
 #   reverses the order of elements in list.
 # Example:
@@ -466,3 +472,228 @@ List/zip_with = @fn @arr1 @arr2
 #  return List/to_btree([1, 2, 3, 4, 5])
 #  return List/triangle([1, 2, 3, 4])
 #  return List/zip_with((lambda x, y: x * y), [1, 2, 3, 4], [1, 2, 3, 4])
+###########################################
+### Map
+
+# The Map type is builtin, so we don't need to declare it.
+# But this is how it's defined in the builtins file.
+# type Map:
+#   Node { value ~left ~right }
+#   Leaf
+
+# Built-in functions:
+# Map/empty: -> Map
+# Map/set: Map -> uint -> uint -> Map
+# Map/get: Map -> uint -> uint
+
+###########################################
+#
+#
+# Map increment:
+#   Increments the value of a key in the map.
+# Example:
+#   {0: 1, 1: 2}, 1, 1 -> {0: 1, 1: 3}
+def Map/increment(map, key, val):
+  curr = map[key]
+  
+  return Map/set(map, key, curr + val)
+
+#
+#
+# Map fill:
+#   Creates a map with keys from 0 to n - 1, with value of 0.
+# Example:
+#   3 -> {0: 0, 1: 0, 2: 0}
+Map/fill/aux = @map @keys @val
+  use map = (Map/set map keys val)
+  switch keys {
+    0: map
+    _: (Map/fill/aux map (- keys 1) val)
+  }
+
+Map/fill = @keys
+  (Map/fill/aux Map/empty keys 0)
+
+#################################
+
+# Example usage of the functions above:
+# def main:
+  # return Map/fill(3)
+  # return Map/increment({0: 1, 1: 2}, 1, 1)
+Number/next_power_of_two/aux = @n @x
+  if (> (+ x 1) n) {
+    x
+  } else {
+    (Number/next_power_of_two/aux n (* x 2))
+  }
+
+Number/next_power_of_two = @n
+  (Number/next_power_of_two/aux n 1)
+
+Number/needed_for_power_of_two = @n
+  (- (Number/next_power_of_two n) n)
+
+Number/mul = @x @y
+  (* x y)
+
+Number/log2/int/aux = @n @acc
+  switch n {
+    0: acc
+    _: (Number/log2/int/aux (/ n 2) (+ acc 1))
+  }
+
+Number/log2/int = @n
+  (Number/log2/int/aux (- n 1) 0)
+
+# type Tree:
+#   Node { ~left, ~right }
+#   Leaf { value }
+
+Tree/generate = @depth
+  bend x = 0 {
+    when (< x depth):
+      (Tree/Node (fork (+ x 1)) (fork (+ x 1)))
+    else:
+      (Tree/Leaf x)
+  }
+
+Tree/to_list = @tree
+  match tree {
+    Tree/Node: (List/concat (Tree/to_list tree.left) (Tree/to_list tree.right))  
+    Tree/Leaf: (List/Cons tree.value [])
+  }
+
+Tree/left = @tree
+  match tree {
+    Tree/Node: tree.left
+    Tree/Leaf: tree
+  }
+
+Tree/right = @tree
+  match tree {
+    Tree/Node: tree.right
+    Tree/Leaf: tree
+  }
+
+Tree/value = @tree
+  match tree {
+    Tree/Node: 0
+    Tree/Leaf: tree.value
+  }
+
+Tree/zip_with = @fn @tree1 @tree2
+  fold tree1 with tree2 {
+    Tree/Node: (Tree/Node (tree1.left (Tree/left tree2)) (tree1.right (Tree/right tree2)))
+    Tree/Leaf: (Tree/Leaf (fn tree1.value (Tree/value tree2)))
+  }
+
+Tree/from_list/aux/new_layer = @l
+  use tmp = []
+  use res = []
+  fold l with tmp, res {
+    List/Cons: match tmp {
+      # previous el waiting for merge
+      List/Cons: (l.tail [] (List/Cons (Tree/Node l.head tmp.head) res))
+      List/Nil: (l.tail [l.head] res)
+    }
+    List/Nil: res
+  }
+
+Tree/from_list/aux = @l @iters
+  use btree = (Tree/from_list/aux/new_layer (List/reverse l))
+  switch iters {
+    0: btree
+    _: (Tree/from_list/aux btree (- iters 1))
+  }
+
+Tree/from_list = @l
+  (Tree/from_list_val l 0)
+
+Tree/from_list_val = @l @val
+  use len_l = (List/len l)
+  use mapped = (List/map l (@x (Tree/Leaf x)))
+  use extenstion = (List/create (Number/needed_for_power_of_two len_l) (Tree/Leaf val))
+  (List/head (Tree/from_list/aux (List/concat mapped extenstion) (- (Number/log2/int len_l) 1)))
+
+Tree/sum = @tree
+  fold tree {
+    Tree/Node: (+ (tree.left) (tree.right))
+    Tree/Leaf: tree.value
+  }
+
+#
+# End of included library
+#
+
+
+
+## 
+# Main
+#
+
+get_inc = @el @ranges
+  use i = 0
+  fold ranges with i {
+    List/Cons: if (> el ranges.head) { (ranges.tail (+ i 1)) } else { i }
+    List/Nil: i
+  }
+     
+      
+histogram = @list @ranges
+  use ans = (Map/fill (List/len ranges))
+  
+  fold list with ans {
+    List/Cons: (list.tail (Map/increment ans (get_inc list.head ranges) 1))  
+    List/Nil: ans
+  }
+
+def map_to_list/aux(map, i, acc):
+  switch i:
+    case 0:
+      return List/Cons(map[acc], List/Nil)
+    case _:
+      return List/Cons(map[acc], map_to_list/aux(map, i - 1, acc + 1))
+
+def map_to_list(map, i):
+  return map_to_list/aux(map, i, 0)
+
+data_gen = @n
+  bend x = 0 {
+    when (< x n):
+      (List/Cons x (fork (+ x 1)))
+    else:
+      List/Nil
+  }
+
+data_gen2 = @n
+  bend x = 0 {
+    when (< x n):
+      (List/Cons 2 (fork (+ x 1)))
+    else:
+      List/Nil
+  }
+
+# Tree/dot = @tree1 @tree2
+#   (Tree/sum (Tree/zip_with Number/mul tree1 tree2))
+
+List/convolve/with.Tree = @l1 @l2
+  use t1 = (Tree/from_list_val (List/triangle l1) [0])
+  use t2 = (Tree/from_list_val (List/reverse (List/triangle (List/reverse l2))) [0])
+  (Tree/to_list (Tree/zip_with List/dot t1 t2))
+
+
+##
+# Benchmark 256
+# Sequential
+# - ITRS: 18474126
+# - TIME: 0.32s
+# - MIPS: 57.89
+#
+# Parallel
+# - ITRS: 98m
+# - TIME: 0.65s
+# - MIPS: 149.77
+main =
+  use data1 = (data_gen 256)
+  use data2 = (data_gen 256)
+  (List/convolve/with.Tree data1 data2)
