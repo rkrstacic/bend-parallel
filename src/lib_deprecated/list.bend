@@ -47,8 +47,11 @@
 #   adds a non-List element to the front of list.
 # Example:
 #   [2, 3], 1 -> [1, 2, 3]
-List/add_front (List/Cons x xs) el = (List/Cons el (List/Cons x xs))
-List/add_front [] el = (List/Cons el List/Nil)
+List/add_front = @l @e
+  match l {
+    List/Cons: (List/Cons e l)
+    List/Nil: (List/Cons e List/Nil)
+  }
 
 #
 #
@@ -56,7 +59,8 @@ List/add_front [] el = (List/Cons el List/Nil)
 #   adds a non-list element to the back of list.
 # Example:
 #   [1, 2], 3 -> [1, 2, 3]
-List/append l e = (List/concat l (List/Cons e List/Nil))
+List/append = @l @e
+  (List/concat l (List/Cons e List/Nil))
 
 #
 #
@@ -64,7 +68,8 @@ List/append l e = (List/concat l (List/Cons e List/Nil))
 #   clears all elements from list l. This is equivalent to initializing an empty list.
 # Example:
 #   [0, 2, 3] -> []
-List/clear l = []
+List/clear = @l
+  []
 
 #
 #
@@ -85,19 +90,8 @@ List/clear l = []
 #   Convolution of two lists
 # Example:
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 10, 20, 25, 24, 16]
-List/convolve arr1 arr2 = (List/zip_with List/dot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
-
-#
-#
-# List convolve with Tree:
-#   Convolution of two lists with Tree implementation
-# Example:
-#   [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 10, 20, 25, 24, 16, 0]
-List/convolve/with.Tree = @l1 @l2
-  use t1 = (Tree/from_list_val (List/triangle l1) [0])
-  use t2 = (Tree/from_list_val (List/reverse (List/triangle (List/reverse l2))) [0])
-  (Tree/to_list (Tree/zip_with List/dot t1 t2))
-
+List/convolve = @arr1 @arr2
+  (List/zip_with List/dot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
 
 #
 #
@@ -119,11 +113,18 @@ List/create = @n @val
 #   returns the number of instances of some value in the list.
 # Example:
 #   [1, 2, 3, 3, 3, 4, 4, 5, 3, 1000], 4 -> 2
-List/count/aux acc (List/Cons l xl) s = (List/count/aux (if (== l s) { (+ acc 1) } else { acc }) xl s)
-List/count/aux acc [] s = acc
+List/count/aux = @acc @l @s
+  match l {
+    List/Nil: acc
+    List/Cons: use acc = switch (== l.head s) {
+      0: acc;
+      _: (+ acc 1);
+    }
+    (List/count/aux acc l.tail s)
+  }
 
-List/count l s = (List/count/aux 0 l s)
-
+List/count = @l @s
+  (List/count/aux 0 l s)
 
 #
 #
@@ -131,7 +132,8 @@ List/count l s = (List/count/aux 0 l s)
 #   Dot product of two lists
 # Example:
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> 30
-List/dot arr1 arr2 = (List/sum (List/zip_with (@x @y (* x y)) arr1 arr2))
+List/dot = @arr1 @arr2
+  (List/sum (List/zip_with (@x @y (* x y)) arr1 arr2))
 
 #
 #
@@ -150,7 +152,8 @@ List/dot arr1 arr2 = (List/sum (List/zip_with (@x @y (* x y)) arr1 arr2))
 #   Convolution of two lists (with floating points)
 # Example:
 #   [0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4] -> [0.01, 0.04, 0.1, 0.2, 0.2, 0.25, 0.24, 0.16]
-List/fconvolve arr1 arr2 = (List/zip_with List/fdot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
+List/fconvolve = @arr1 @arr2
+  (List/zip_with List/fdot (List/triangle arr1) (List/reverse (List/triangle (List/reverse arr2))))
 
 #
 #
@@ -158,7 +161,8 @@ List/fconvolve arr1 arr2 = (List/zip_with List/fdot (List/triangle arr1) (List/r
 #   Dot product of two lists
 # Example:
 #  [0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4] -> 0.3
-List/fdot arr1 arr2 = (List/fsum (List/zip_with (@x @y (* x y)) arr1 arr2))
+List/fdot = @arr1 @arr2
+  (List/fsum (List/zip_with (@x @y (* x y)) arr1 arr2))
 
 #
 #
@@ -166,8 +170,11 @@ List/fdot arr1 arr2 = (List/fsum (List/zip_with (@x @y (* x y)) arr1 arr2))
 #   returns the sum of all items in the list.
 # Example:
 #   [0.1, 0.2, 0.3] -> 0.6
-List/fsum (List/Cons l xl) = (+ l (List/fsum xl))
-List/fsum [] = 0.0
+List/fsum = @l
+  match l {
+    List/Cons: (+ l.head (List/fsum l.tail))
+    List/Nil: 0.0
+  }
 
 #
 #
@@ -175,8 +182,11 @@ List/fsum [] = 0.0
 #   Returns the first item in the list, or [] if the list is empty.
 # Example:
 #   [1, 2, 3] -> 1
-List/head (List/Cons x xs) = x
-List/head [] = []
+List/head = @l
+  match l {
+    List/Cons: l.head
+    List/Nil: []
+  }
 
 #
 #
@@ -186,9 +196,15 @@ List/head [] = []
 #   [5, 3, 6, 8, 2], 0 -> 5
 #   [5, 3, 6, 8, 2], 3 -> 8
 #   [5, 3, 6, 8, 2], 5 -> *
-List/index (List/Cons x xs) 0 = x
-List/index (List/Cons x xs) n = (List/index xs (- n 1))
-List/index [] n = *
+List/index = @l @i
+  match l {
+    List/Cons: 
+      switch i {
+        0: l.head
+        _: (List/index l.tail (i-1))
+      }
+    List/Nil: *
+  }
 
 #
 #
@@ -198,12 +214,20 @@ List/index [] n = *
 #   [1] -> 0
 #   [1, 2] -> 1
 #   [1, 2, 3] -> 0
-List/is_pair/aux (List/Cons x xs) 0 = 0
-List/is_pair/aux [] 0 = 1
-List/is_pair/aux [] n = 0
-List/is_pair/aux (List/Cons x xs) n = (List/is_pair/aux xs (- n 1))
+List/is_pair/aux = @list @iter
+  match list {
+    List/Cons: switch iter {
+      0: 0
+      _: (List/is_pair/aux list.tail (- iter 1))
+    }
+    List/Nil: switch iter {
+      0: 1
+      _: 0
+    }
+  }
 
-List/is_pair list = (List/is_pair/aux list 2)
+List/is_pair = @list
+  (List/is_pair/aux list 2)
 
 #
 #
@@ -212,7 +236,8 @@ List/is_pair list = (List/is_pair/aux list 2)
 # Example:
 #   [1] -> 1
 #   [1, 2] -> 0
-List/is_single list = (List/is_pair/aux list 1)
+List/is_single = @list
+  (List/is_pair/aux list 1)
 
 #
 #
@@ -220,10 +245,9 @@ List/is_single list = (List/is_pair/aux list 1)
 #   returns the number of elements in list
 # Example:
 #   [1, 2, 3, 4, 4, 4] -> 6
-List/len/aux [] count = count
-List/len/aux (List/Cons x xs) count = (List/len/aux xs (+ count 1))
-
-List/len list = (List/len/aux list 0)
+List/len list = (List/len/go list 0)
+List/len/go [] count = count
+List/len/go (List/Cons x xs) count = (List/len/go xs (+ count 1))
 
 
 #
@@ -243,7 +267,7 @@ List/map (List/Cons x xs) fn = (List/Cons (fn x) (List/map xs fn))
 #   [1, 2, 3, 4] -> [1, 2, 3]
 List/pop_back (List/Nil) = List/Nil
 List/pop_back (List/Cons x List/Nil) = List/Nil
-List/pop_back (List/Cons x xs) = (List/Cons x (List/pop_back xs))  
+List/pop_back (List/Cons head tail) = (List/Cons head (List/pop_back tail))  
 #
 #
 # List pop front: 
@@ -251,8 +275,11 @@ List/pop_back (List/Cons x xs) = (List/Cons x (List/pop_back xs))
 #   The new list is returned, or [] if the list is empty.
 # Example:
 #   [1, 2, 3] -> [2, 3]
-List/pop_front (List/Cons x xs) = xs
-List/pop_front [] = []
+List/pop_front = @l
+  match l {
+    List/Cons: l.tail
+    List/Nil: []
+  }
 
 #
 #
@@ -260,8 +287,15 @@ List/pop_front [] = []
 #   Removes the first occurence of element e from list l.
 # Example:
 #   [1, 2, 1, 3], 1 -> [2, 1, 3]
-List/remove (List/Cons x xs) s = (if (== x s) { xs } else { (List/Cons x (List/remove xs s)) })
-List/remove [] s = []
+List/remove = @l @s
+  match l {
+    List/Cons:
+      switch (== l.head s) {
+        0: (List/Cons l.head (List/remove l.tail s))
+        _: l.tail
+      }
+    List/Nil: List/Nil
+  }
 
 #
 #
@@ -288,8 +322,9 @@ List/remove [] s = []
 List/reversed_tails/aux [] acc = []
 List/reversed_tails/aux (List/Cons x xs) acc = (List/Cons acc (List/reversed_tails/aux xs (List/Cons x acc)))
 
-List/reversed_tails [] = []
-List/reversed_tails (List/Cons x xs) = (List/reversed_tails/aux xs [x])
+
+List/reversed_tails = @arr
+  (List/reversed_tails/aux (List/tail arr) [(List/head arr)])
 
 #
 #
@@ -298,11 +333,17 @@ List/reversed_tails (List/Cons x xs) = (List/reversed_tails/aux xs [x])
 #   the second list takes the element at index i during the split.
 # Example:
 #   [1, 2, 3, 4, 5, 6, 7], 3 -> ([1, 2, 3], [4, 5, 6, 7])
-List/split/aux acc [] i = *
-List/split/aux acc (List/Cons x xs) 0 = (acc, (List/Cons x xs))
-List/split/aux acc (List/Cons x xs) i = (List/split/aux (List/append acc x) xs (- i 1))
-
-List/split l i = (List/split/aux [] l i)
+List/split/aux = @acc @l @i
+  match l {
+    List/Cons: 
+      switch i {
+        0: (acc, l)
+        _: (List/split/aux (List/append acc l.head) l.tail i-1)
+      }
+    List/Nil: *
+  }
+List/split = @l @i
+  (List/split/aux [] l i)
 
 #
 #
@@ -310,8 +351,11 @@ List/split l i = (List/split/aux [] l i)
 #   returns the sum of all items in the list.
 # Example:
 #   [1, 2, 3] -> 6 
-List/sum [] = 0
-List/sum (List/Cons x xs) = (+ x (List/sum xs))
+List/sum = @l
+  match l {
+    List/Cons: (+ l.head (List/sum l.tail))
+    List/Nil: 0
+  }
 
 #
 #
@@ -319,9 +363,11 @@ List/sum (List/Cons x xs) = (+ x (List/sum xs))
 #   Returns the list without the first element, or [] if the list is empty.
 # Example:
 #   [1, 2, 3] -> [2, 3]
-List/tail (List/Cons x xs) = xs
-List/tail [] = []
-
+List/tail = @l
+  match l {
+    List/Cons: l.tail
+    List/Nil: l
+  }
 #
 #
 # List tails:
@@ -343,11 +389,18 @@ List/tails (List/Cons x xs) = (List/Cons (List/Cons x xs) (List/tails xs))
 #   groups elements into binary tree list. 
 # Example:
 #   [1, 2, 3, 4, 5] -> [[[1, 2], [3, 4]], [[5, []], [[], []]]
-List/to_btree/aux [] = []
-List/to_btree/aux (List/Cons x List/Nil) = (List/Cons [x, *] List/Nil)
-List/to_btree/aux (List/Cons x (List/Cons y ys)) = (List/Cons [x, y] (List/to_btree/aux ys))
+List/to_btree/aux = @l
+  match l {
+    List/Cons: (List/Cons [l.head, (List/head l.tail)] (List/to_btree/aux (List/tail l.tail)))
+    List/Nil: l
+  }
 
-List/to_btree l = if (List/is_pair l) { (l) } else { (List/to_btree (List/to_btree/aux l)) }
+List/to_btree = @l
+  use btree = (List/to_btree/aux l)
+  switch (List/is_pair btree) {
+    0: (List/to_btree btree)
+    _: btree
+  }
 
 #
 #
@@ -356,7 +409,8 @@ List/to_btree l = if (List/is_pair l) { (l) } else { (List/to_btree (List/to_btr
 #   The tails part is reversed, so it's not exactly a triangle
 # Example:
 #   [1, 2, 3, 4] -> [[1], [1, 2], [1, 2, 3], [1, 2, 3, 4], []
-List/triangle arr = (List/concat (List/map (List/reversed_tails arr) List/reverse) (List/tails arr))
+List/triangle = @arr 
+  (List/concat (List/map (List/reversed_tails arr) List/reverse) (List/tails arr))
 
 #
 #

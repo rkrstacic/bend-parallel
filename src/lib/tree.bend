@@ -7,56 +7,34 @@ Tree/generate = @depth
   }
 
 Tree/to_list = @tree
-  match tree {
-    Tree/Node: (List/concat (Tree/to_list tree.left) (Tree/to_list tree.right))  
+  fold tree {
+    Tree/Node: (List/concat (tree.left) (tree.right))  
     Tree/Leaf: (List/Cons tree.value [])
   }
 
-Tree/left = @tree
-  match tree {
-    Tree/Node: tree.left
-    Tree/Leaf: tree
-  }
+Tree/left (Tree/Node left _) = left
+Tree/left (Tree/Leaf val) = (Tree/Leaf val)
 
-Tree/right = @tree
-  match tree {
-    Tree/Node: tree.right
-    Tree/Leaf: tree
-  }
+Tree/right (Tree/Node _ right) = right
+Tree/right (Tree/Leaf val) = (Tree/Leaf val)
 
-Tree/value = @tree
-  match tree {
-    Tree/Node: 0
-    Tree/Leaf: tree.value
-  }
+Tree/value (Tree/Node l r) = *
+Tree/value (Tree/Leaf val) = val 
+  
+Tree/zip_with fn (Tree/Node l1 r1) (Tree/Node l2 r2) = (Tree/Node (Tree/zip_with fn l1 l2) (Tree/zip_with fn r1 r2))
+Tree/zip_with fn (Tree/Leaf v1) (Tree/Leaf v2) = (Tree/Leaf (fn v1 v2))
+Tree/zip_with fn (Tree/Leaf v1) (Tree/Node l2 r2) = *
+Tree/zip_with fn (Tree/Node l1 r1) (Tree/Leaf v2) = *
 
-Tree/zip_with = @fn @tree1 @tree2
-  fold tree1 with tree2 {
-    Tree/Node: (Tree/Node (tree1.left (Tree/left tree2)) (tree1.right (Tree/right tree2)))
-    Tree/Leaf: (Tree/Leaf (fn tree1.value (Tree/value tree2)))
-  }
+Tree/from_list/aux/new_layer [] [] res = res
+Tree/from_list/aux/new_layer [] (List/Cons t xt) res = *
+Tree/from_list/aux/new_layer (List/Cons l xl) [] res = (Tree/from_list/aux/new_layer xl [l] res)
+Tree/from_list/aux/new_layer (List/Cons l xl) (List/Cons t xt) res = (Tree/from_list/aux/new_layer xl [] (List/Cons (Tree/Node l t) res))
 
-Tree/from_list/aux/new_layer = @l
-  use tmp = []
-  use res = []
-  fold l with tmp, res {
-    List/Cons: match tmp {
-      # previous el waiting for merge
-      List/Cons: (l.tail [] (List/Cons (Tree/Node l.head tmp.head) res))
-      List/Nil: (l.tail [l.head] res)
-    }
-    List/Nil: res
-  }
+Tree/from_list/aux l 0 = (Tree/from_list/aux/new_layer (List/reverse l))
+Tree/from_list/aux l iters = (Tree/from_list/aux (Tree/from_list/aux/new_layer (List/reverse l)) (- iters 1))
 
-Tree/from_list/aux = @l @iters
-  use btree = (Tree/from_list/aux/new_layer (List/reverse l))
-  switch iters {
-    0: btree
-    _: (Tree/from_list/aux btree (- iters 1))
-  }
-
-Tree/from_list = @l
-  (Tree/from_list_val l 0)
+Tree/from_list l = (Tree/from_list_val l 0)
 
 Tree/from_list_val = @l @val
   use len_l = (List/len l)
@@ -64,8 +42,15 @@ Tree/from_list_val = @l @val
   use extenstion = (List/create (Number/needed_for_power_of_two len_l) (Tree/Leaf val))
   (List/head (Tree/from_list/aux (List/concat mapped extenstion) (- (Number/log2/int len_l) 1)))
 
+
 Tree/sum = @tree
   fold tree {
     Tree/Node: (+ (tree.left) (tree.right))
     Tree/Leaf: tree.value
+  }
+
+Tree/len = @tree
+  fold tree {
+    Tree/Node: (+ (Tree/len tree.left) (Tree/len tree.right))
+    Tree/Leaf: 1
   }

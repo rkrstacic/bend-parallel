@@ -17,3 +17,15 @@ tasks:
     desc: 
       Generate a merged lib file from all the lib files in /src/lib
   
+  test:
+    cmds:
+      - echo "Running tests..."
+      - echo "Running test 1..."
+
+  benchmark:
+    cmds: 
+      - 'sh scripts/benchmark.sh'
+
+  benchmark-par:
+    cmds: 
+      - 'sh scripts/benchmark_parallel.sh'
