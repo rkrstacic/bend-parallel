@@ -16,16 +16,15 @@ tasks:
       - mkdir -p src/gen && cat src/lib/*.bend > src/gen/merged_lib.bend && echo "Merged lib files in src/gen/merged_lib.bend"
     desc: 
       Generate a merged lib file from all the lib files in /src/lib
-  
-  test:
-    cmds:
-      - echo "Running tests..."
-      - echo "Running test 1..."
 
   benchmark:
     cmds: 
-      - 'sh scripts/benchmark.sh'
+      - 'sh scripts/benchmark.sh false'
+    desc: 
+      Run the benchmark on the convolution [64, 128, 256, 512, 1024]
 
   benchmark-par:
     cmds: 
-      - 'sh scripts/benchmark_parallel.sh'
+      - 'sh scripts/benchmark.sh true'
+    desc:
+      Run the benchmark on the convolution with parallel algorithm [64, 128, 256, 512, 1024]

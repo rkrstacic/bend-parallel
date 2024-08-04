@@ -1,5 +1,16 @@
-[Bend official GitHub](https://github.com/HigherOrderCO/bend/blob/main/GUIDE.md)
+<h1 align=center> Convolution in Parallel </h1>
 
+TODO: write this
+What is a convolution... why parallel
+
+# Contents
+
+- [Quick start](#quick-start)
+TODO:
+
+# Quick start
+
+TODO:
 To run the code, run in terminal
 ```
 bend run src/main.bend -s
@@ -9,6 +20,8 @@ To run the code in paralel mode, run in terminal
 ```
 bend run-c src/main.bend -s
 ```
+
+# Tasks
 
 ## Task 1
 > Having an array of numbers create a histogram that counts the number of elements for each range group.
@@ -78,7 +91,53 @@ After some investigation, i realized that majority of the computation time was c
 
 I continued the investigation and suspected few more sub-optimal implementations of some other functions. But it wasnt until i went to the source code of the Bend, found golden_tests and then found bunch of .bend test files that taught me how to write better bend. The use of pattern matching for function definition is a thing and it was used a lot. I went to replace the dot product function which i suspected could be improved, and decreased down the time by a lot. With dot product improved the Seq time was 0.32s and Par 0.22s.
 
-Next was, of course, to implement all (or the most crutial) functions with the new technique of pattern matching and see the results. To be continued...
+Next was, of course, to implement all functions with the new technique of pattern matching and see the results. Once implemented, here are the results of both List based (naive approach) and Tree based (optimized approach) convolution:
+
+256 elements:
+List based: 0.12s Seq, 0.06s Par (50.0% speedup)
+Tree based: 0.18s Seq, 0.09s Par (50.0% speedup)
+
+512 elements:
+List based: 0.46s Seq, 0.24s Par (47.8% speedup)
+List based: 0.72s Seq, 0.36s Par (50.0% speedup)
+
+There are few questions that i have to answer. Why is List based approach faster than Tree based approach? Why is the speedup not 90%?
+
+The reason for why List based approach is faster than Tree based approach is because the Tree based approch has an extra layer. It needs to convert the triangles list into a tree structure, and then convert it back to the list. If we analyze the iterations needed for the list based approach we see that the triangles part takes 37% of the computation and 63% is the dot product. The tree based approach has 50% more total workload, and the distribution of the parts is 61% on the triangles part (with tree conversions) and 39% on the dot product part. The triangles part is 22% of the computation, and the tree conversions are 39% of the computation.
+
+The triangles part get a maximum of x4 speedup because the way it is structured, it can be split up into 4 different independent processes. The dot product part on the tree solution has x10 speedup (maximum parallel power). The dot product part of the list solution has x1.4 speedup because the way it is structured. Taking all that into account we get the following:
+
+List based approach:
+100% - (37% / 4 + 63% / 1.4) = ~45.8% speedup
+
+Tree based approach:
+100% - (39% + 22% / 4 + 39% / 10) = ~51.6% speedup
+
+Tree based solution has a total of 1.61 times more computation to be done
+
+
+
+Visual representation of the computation:
+- T: Tree conversion
+- t: triangles
+- d: dot product
+
+Sequential
+List - tttttttttttttttttttt dddddddddddddddddddddddddddddddddddddddd
+Tree - TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT tttttttttttttttttttt dddddddddddddddddddddddddddddddddddddddd  
+
+Parallel
+List - ttttt dddddddddddddddddddddddddddd
+Tree - TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT ttttt dddddd
+
+
+So, if the Tree conversions are optimized, the tree based approach would be be better than the list based approach by the amount of possible optimization of that tree conversion.
+
+
+In conclusion, after applying all the techniques i have learned, i have managed to get the time down from 5.15s Seq to 0.12s Seq and from 1.07s Par to 0.06s Par. That is a 43x speedup on sequential run and 15.3x speedup on parallel run.
+
+Possible improvements:
+- Implement the tree conversion in a more optimal way for parallel execution
 
 
 ### Benchmark (2 arrays of 256 elements):
@@ -107,4 +166,16 @@ Parallel   - 0.65s
 src/convolution/4_pattern_matching_for_dotproduct.bend:
 Sequential - 0.32s
 Parallel   - 0.22s
+
+src/convolution/5_1_all_pattern_matching_list_based.bend:
+Sequential - 0.12s
+Parallel   - 0.06s
 ```
+
+# Requirements
+TODO:
+[Bend official GitHub](https://github.com/HigherOrderCO/bend/blob/main/GUIDE.md)
+
+Version needed: 0.1.0
+HVM version: 0.1.0
+

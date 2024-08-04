@@ -94,10 +94,7 @@ List/convolve arr1 arr2 = (List/zip_with List/dot (List/triangle arr1) (List/rev
 #   Convolution of two lists with Tree implementation
 # Example:
 #   [1, 2, 3, 4], [1, 2, 3, 4] -> [1, 4, 10, 20, 25, 24, 16, 0]
-List/convolve/with.Tree = @l1 @l2
-  use t1 = (Tree/from_list_val (List/triangle l1) [0])
-  use t2 = (Tree/from_list_val (List/reverse (List/triangle (List/reverse l2))) [0])
-  (Tree/to_list (Tree/zip_with List/dot t1 t2))
+List/convolve/with.Tree l1 l2 = (Tree/to_list (Tree/zip_with List/dot (Tree/from_list_val (List/triangle l1) [0]) (Tree/from_list_val (List/reverse (List/triangle (List/reverse l2))) [0])))
 
 #
 #
@@ -105,13 +102,8 @@ List/convolve/with.Tree = @l1 @l2
 #   creates a list of n elements, all with the same value.
 # Example:
 #   3, 4 -> [4, 4, 4]
-List/create = @n @val
-  bend x = 0 {
-    when (< x n):
-      (List/Cons val (List/create (- n 1) val))
-    else:
-      List/Nil
-  }
+List/create n val = if (> n 0) { (List/Cons val (List/create (- n 1) val)) } else { List/Nil }
+
 
 #
 #
@@ -401,3 +393,243 @@ List/zip_with fn (List/Cons x xs) (List/Cons y ys) = (List/Cons (fn x y) (List/z
 #  return List/to_btree([1, 2, 3, 4, 5])
 #  return List/triangle([1, 2, 3, 4, 5, 6, 7])
 #  return List/zip_with((lambda x, y: x * y), [1, 2, 3, 4], [1, 2, 3, 4])
+################################
+### Number helper functions: ###
+#
+#
+# List of functions in this file:
+# - Number/next_power_of_two
+# - Number/needed_for_power_of_two
+# - Number/mul
+# - Number/log2/int
+
+
+###########################################
+#
+#
+# Number/next_power_of_two:
+#   returns the next power of two greater than n.
+# Example:
+#   5 -> 8
+#   8 -> 8
+#   9 -> 16
+Number/next_power_of_two/aux n x = if (> (+ x 1) n) { x } else { (Number/next_power_of_two/aux n (* x 2)) }
+
+Number/next_power_of_two n = (Number/next_power_of_two/aux n 1)
+
+#
+#
+# Number/needed_for_power_of_two:
+#   returns the number needed to reach the next power of two.
+# Example:
+#   5 -> 3
+#   8 -> 0
+#   9 -> 7
+Number/needed_for_power_of_two n = (- (Number/next_power_of_two n) n)
+
+#
+#
+# Number/mul:
+#   returns the product of x and y.
+# Example:
+#   5 3 -> 15
+#   8 8 -> 64
+Number/mul x y = (* x y)
+
+#
+#
+# Number/log2/int:
+#   returns the integer part of the base 2 logarithm of n.
+# Example:
+#   5 -> 2
+#   8 -> 3
+#   9 -> 3
+Number/log2/int/aux 0 acc = acc
+Number/log2/int/aux n acc = (Number/log2/int/aux (/ n 2) (+ acc 1))
+
+Number/log2/int n = (Number/log2/int/aux (- n 1) 0)
+
+
+############################################
+# Example usage of the functions above:
+# main =
+#   (Number/next_power_of_two 5)
+#   (Number/needed_for_power_of_two 5)
+#   (Number/mul 5 3)
+#   (Number/log2/int 5)
+#################################################
+### Tree Type Definition and Helper functions ###
+#
+#
+# The Tree type is builtin, so we don't need to declare it.
+# But this is how it's defined in the builtins file.
+# type Tree
+#   Node (Tree left) (Tree right)
+#   Leaf Number
+#
+# List of functions in this file:
+# - Tree/generate
+# - Tree/to_list
+# - Tree/left
+# - Tree/right
+# - Tree/value
+# - Tree/zip_with
+# - Tree/from_list
+# - Tree/from_list_val
+# - Tree/sum
+# - Tree/len
+
+
+################################
+#
+#
+# Tree/generate:
+#   generates a tree of depth depth.
+# Example:
+#   3 -> (Node (Node (Leaf 3) (Leaf 3)) (Node (Leaf 3) (Leaf 3))
+Tree/generate = @depth
+  bend x = 0 {
+    when (< x depth):
+      (Tree/Node (fork (+ x 1)) (fork (+ x 1)))
+    else:
+      (Tree/Leaf x)
+  }
+
+#
+#
+# Tree/to_list:
+#   returns a list of the values in the tree.
+# Example:
+#   (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))) -> [3, 5, 8, 3]
+Tree/to_list = @tree
+  fold tree {
+    Tree/Node: (List/concat (tree.left) (tree.right))  
+    Tree/Leaf: (List/Cons tree.value [])
+  }
+
+#
+#
+# Tree/left:
+#   returns the left child of the tree.
+# Example:
+#   (Node (Leaf 3) (Leaf 5)) -> (Leaf 3)
+Tree/left (Tree/Node left _) = left
+Tree/left (Tree/Leaf val) = (Tree/Leaf val)
+
+#
+#
+# Tree/right:
+#   returns the right child of the tree.
+# Example:
+#   (Node (Leaf 3) (Leaf 5)) -> (Leaf 5)
+Tree/right (Tree/Node _ right) = right
+Tree/right (Tree/Leaf val) = (Tree/Leaf val)
+
+#
+#
+# Tree/value:
+#   returns the value of the tree.
+# Example:
+#   (Leaf 3) -> 3
+Tree/value (Tree/Node l r) = *
+Tree/value (Tree/Leaf val) = val 
+  
+#
+#
+# Tree/zip_with:
+#   returns a tree with the values of the two input trees combined using the function fn.
+# Example:
+#   (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3)) (+) -> (Node (Leaf 11) (Leaf 8))
+Tree/zip_with fn (Tree/Node l1 r1) (Tree/Node l2 r2) = (Tree/Node (Tree/zip_with fn l1 l2) (Tree/zip_with fn r1 r2))
+Tree/zip_with fn (Tree/Leaf v1) (Tree/Leaf v2) = (Tree/Leaf (fn v1 v2))
+Tree/zip_with fn (Tree/Leaf v1) (Tree/Node l2 r2) = *
+Tree/zip_with fn (Tree/Node l1 r1) (Tree/Leaf v2) = *
+
+#
+#
+# Tree/from_list:
+#   returns a tree from a list of values.
+# Example:
+#   [3, 5, 8, 3] -> (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))
+Tree/from_list/aux/new_layer [] [] res = res
+Tree/from_list/aux/new_layer [] (List/Cons t xt) res = *
+Tree/from_list/aux/new_layer (List/Cons l xl) [] res = (Tree/from_list/aux/new_layer xl [l] res)
+Tree/from_list/aux/new_layer (List/Cons l xl) (List/Cons t xt) res = (Tree/from_list/aux/new_layer xl [] (List/Cons (Tree/Node l t) res))
+
+Tree/from_list/aux l 0 = (Tree/from_list/aux/new_layer (List/reverse l) [] [])
+Tree/from_list/aux l iters = (Tree/from_list/aux (Tree/from_list/aux/new_layer (List/reverse l) [] []) (- iters 1))
+
+Tree/from_list l = (Tree/from_list_val l 0)
+
+# Tree/from_list_val:
+#   returns a tree from a list of values, with the remaining values to have full tree filled with some value.
+# Example:
+#   [3, 5, 8, 3] 0 -> (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))
+#   [3, 5, 8] 1 -> (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 1))
+Tree/from_list_val = @l @val
+  use len_l = (List/len l)
+  use mapped = (List/map l (@x (Tree/Leaf x)))
+  use extenstion = (List/create (Number/needed_for_power_of_two len_l) (Tree/Leaf val))
+  (List/head (Tree/from_list/aux (List/concat mapped extenstion) (- (Number/log2/int len_l) 1)))
+
+#
+#
+# Tree/sum:
+#   returns the sum of the values in the tree.
+# Example:
+#   (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))) -> 19
+Tree/sum = @tree
+  fold tree {
+    Tree/Node: (+ (tree.left) (tree.right))
+    Tree/Leaf: tree.value
+  }
+
+#
+#
+# Tree/len:
+#   returns the number of nodes in the tree.
+# Example:
+#   (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))) -> 4
+Tree/len = @tree
+  fold tree {
+    Tree/Node: (+ (Tree/len tree.left) (Tree/len tree.right))
+    Tree/Leaf: 1
+  }
+
+
+############################################
+# Example usage of the functions above:
+# main =
+#   (Tree/generate 3)
+#   (Tree/to_list (Tree/generate 3))
+#   (Tree/left (Tree/generate 3))
+#   (Tree/right (Tree/generate 3))
+#   (Tree/value (Tree/generate 3))
+#   (Tree/zip_with (+) (Tree/generate 3) (Tree/generate 3))
+#   (Tree/from_list [3, 5, 8, 3])
+#   (Tree/from_list_val [3, 5, 8, 3] 0)
+#   (Tree/sum (Tree/generate 3))
+#   (Tree/len (Tree/generate 3))
+
+data_gen = @n
+  bend x = 0 {
+    when (< x n):
+      (List/Cons x (fork (+ x 1)))
+    else:
+      List/Nil
+  }
+
+##
+# Benchmark
+#
+# Convolution of arrays size: 64 - 0.01s
+# Convolution of arrays size: 128 - 0.05s
+# Convolution of arrays size: 256 - 0.18s
+# Convolution of arrays size: 512 - 0.71s
+# Convolution of arrays size: 1024 - 2.97s
+
+main = @layers
+  use data = (data_gen (<< 2 layers))
+
+  # Using List/len to not output the whole list, but still evaluating the whole list
+  (List/len (List/convolve data data)) 
