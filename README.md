@@ -220,7 +220,8 @@ Parallel   - 0.65s
 src/convolution/4_pattern_matching_for_dotproduct.bend:
 Sequential - 0.32s
 Parallel   - 0.22s
-
+```
+```
 src/convolution/5_1_all_pattern_matching_list_based.bend:
 Sequential - 0.12s
 Parallel   - 0.06s
