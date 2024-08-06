@@ -1,29 +1,81 @@
 <h1 align=center> Convolution in Parallel </h1>
 
-TODO: write this
-What is a convolution... why parallel
+Convolution is a important operation in mathematics and statistics, widely used in fields such as signal processing, image analysis, and data science. It involves combining two functions to produce a third, expressing how the shape of one is modified by the other. Despite its theoretical simplicity, convolution can be computationally demanding, especially with large datasets.
+
+In statistics, convolution plays a crucial role in probability theory, particularly in the context of adding independent random variables. The computational complexity associated with convolution seek for efficient algorithmic implementations, especially when dealing with large-scale data.
+
+This project explores the benefits of parallel computation for computing convolution operation. The project is built upon Bend programming language, which is a high-level language designed for tapping into parallel computation power by utilizing CPU's multithread architecture or NVIDIA's CUDA api interface for GPUs. 
+
+You can read more about Bend on the [Bend's official GitHub repository](https://github.com/HigherOrderCO/bend/blob/main/GUIDE.md)
+
 
 # Contents
 
 - [Quick start](#quick-start)
-TODO:
+- [Challenges](#challenges)
+  - [Histogram](#challenge-1)
+  - [Convolution](#challenge-2)
 
-# Quick start
+# Quick start (macOS)
 
-TODO:
+Install the Cargo package manager via Rust:
+```
+curl https://sh.rustup.rs -sSf | sh
+```
+
+With Cargo, install the specific versions of the Bend and HVM to ensure the code runs correctly:
+```
+cargo install hvm@2.0.19
+cargo install bend-lang@0.2.36
+```
+
+Make sure you have `gcc` installed for parallel execution:
+```
+brew install gcc
+```
+
+Install task runner:
+```
+brew install go-task
+```
+
 To run the code, run in terminal
 ```
-bend run src/main.bend -s
+task run
 ```
 
-To run the code in paralel mode, run in terminal
+### Extra
+
+"Task run" will run the main bend file of the project that is setup as a demonstration.
+If you want to run the specific bend file, you can do that by running:
 ```
-bend run-c src/main.bend -s
+bend run <path>
 ```
 
-# Tasks
+You can show the iterations needed, time and the computation speed by adding the `-s` flag at the end of the command:
+```
+bend run <path> -s
+```
 
-## Task 1
+To run the code in parallel mode (requires gcc), run:
+```
+bend run-c <path> -s
+```
+
+There are several tasks that can be run:
+```
+task run                Run the main.bend file
+task runc               Run the main.bend file parallelly
+task lib-gen            Generate a merged lib file from all the lib files in /src/lib
+task benchmark          Run the benchmark on the convolution [64, 128, 256, 512, 1024, 2048, 4096, 8192]
+task benchmark-par      Run the benchmark on the convolution with parallel algorithm [64, 128, 256, 512, 1024]
+```
+
+# Challenges
+
+These challenges are designed to explore the benefits of parallel computation in Bend. The first challenge is just a warmup challenge to get the feeling of the Bend itself. The second challenge is the main challenge of the convolution computation.
+
+## Challenge 1
 > Having an array of numbers create a histogram that counts the number of elements for each range group.
 
 Current personal best: `1.2s` on parallel run
@@ -73,7 +125,7 @@ Sequential - 7.5s
 Parallel   - 1.2s
 ```
 
-## Task 2
+## Challenge 2
 > Compute the convolution of two arrays (same length)
 
 ### Background
@@ -82,7 +134,7 @@ Having two dice [1-6] each with its set of probabilities, what is probability to
 
 ### Approach
 
-The task here is to compute the convolution of two arrays having the same length. Even the first version which has no optimizations took some time to implement. Basic idea is to get the all the possible heads and tails, so called "triangles" of first array [a, b, c] => [[a], [a, b], [a, b, c], [b, c], [c]] and of the second array but reversed [z, y, x] => [[z], [z, y], [z, y, x], [y, x], [x]] and then calculate dot product for those with same indices [dot([a], [z]), dot([a, b], [z, y]), ... dot([c], [x])]. If array has n elements, there are 2n - 1 dot products in total. And that's it! The final array of those dot products is an output of the convolution. Compared to Task 1, that is a lot harder to implement and already at 256 elements for both arrays, the program runs 5.15s Seq and ~1s Par.
+The challenge here is to compute the convolution of two arrays having the same length. Even the first version which has no optimizations took some time to implement. Basic idea is to get the all the possible heads and tails, so called "triangles" of first array [a, b, c] => [[a], [a, b], [a, b, c], [b, c], [c]] and of the second array but reversed [z, y, x] => [[z], [z, y], [z, y, x], [y, x], [x]] and then calculate dot product for those with same indices [dot([a], [z]), dot([a, b], [z, y]), ... dot([c], [x])]. If array has n elements, there are 2n - 1 dot products in total. And that's it! The final array of those dot products is an output of the convolution. Compared to challenge 1, that is a lot harder to implement and already at 256 elements for both arrays, the program runs 5.15s Seq and ~1s Par.
 
 From what i have learned, there can be x10 speedup on parallel run, so i immediately started working on that. Since i didnt focus on parallel running, i realized that i could make some room for parallel execution just by computing those dot products in parallel since they are the ones with the most computation and they dont depend on other sets, just the one with the same index. So i have changed things to run on a Tree structure, instead of the List, and checked out how it went. This is where i realized that there were some other things to be fixed before i could get any better time. Unfortunately the way i was implementing some of the function that handle more complex iterators then builtin single array iterator, wsa not optimal. I got 17.55s Seq, and
 ~6s Par.
@@ -116,8 +168,9 @@ Tree based approach:
 Tree based solution has a total of 1.61 times more computation to be done
 
 
-
+```
 Visual representation of the computation:
+
 - T: Tree conversion
 - t: triangles
 - d: dot product
@@ -129,10 +182,11 @@ Tree - TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT tttttttttttttttttttt dddddddddddddd
 Parallel
 List - ttttt dddddddddddddddddddddddddddd
 Tree - TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT ttttt dddddd
-
+```
 
 So, if the Tree conversions are optimized, the tree based approach would be be better than the list based approach by the amount of possible optimization of that tree conversion.
 
+Analyzing the input size and the time needed for completion, we can see that the algorithm time complexity is O(n^2) which is a theoretical time complexity for moving dot products (cross-correlation).
 
 In conclusion, after applying all the techniques i have learned, i have managed to get the time down from 5.15s Seq to 0.12s Seq and from 1.07s Par to 0.06s Par. That is a 43x speedup on sequential run and 15.3x speedup on parallel run.
 
@@ -172,10 +226,25 @@ Sequential - 0.12s
 Parallel   - 0.06s
 ```
 
-# Requirements
-TODO:
-[Bend official GitHub](https://github.com/HigherOrderCO/bend/blob/main/GUIDE.md)
+Final results src/convolution/5_1_all_pattern_matching_list_based.bend:
+```
+Sequential execution
+Convolution of arrays size: 64 - 0.01s
+Convolution of arrays size: 128 - 0.03s
+Convolution of arrays size: 256 - 0.12s
+Convolution of arrays size: 512 - 0.46s
+Convolution of arrays size: 1024 - 1.80s
+Convolution of arrays size: 2048 - 7.47s
+Convolution of arrays size: 4096 - 29.57s
+Convolution of arrays size: 8192 - Never finished
 
-Version needed: 0.1.0
-HVM version: 0.1.0
-
+Parrallel execution
+Convolution of arrays size: 64 - 0.01s
+Convolution of arrays size: 128 - 0.02s
+Convolution of arrays size: 256 - 0.06s
+Convolution of arrays size: 512 - 0.23s
+Convolution of arrays size: 1024 - 0.90s
+Convolution of arrays size: 2048 - 4.16s
+Convolution of arrays size: 4096 - Never finished
+Convolution of arrays size: 8192 - Never finished
+```

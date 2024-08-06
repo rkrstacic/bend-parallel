@@ -592,7 +592,7 @@ Tree/sum = @tree
 #   (Node (Node (Leaf 3) (Leaf 5)) (Node (Leaf 8) (Leaf 3))) -> 4
 Tree/len = @tree
   fold tree {
-    Tree/Node: (+ (Tree/len tree.left) (Tree/len tree.right))
+    Tree/Node: (+ (tree.left) (tree.right))
     Tree/Leaf: 1
   }
 

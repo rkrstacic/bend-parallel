@@ -10,7 +10,7 @@ else
 fi
 
 start=5
-end=9
+end=12
 
 file=$(echo "src/convolution/5_1_all_pattern_matching_list_based.bend")
 # file=$(echo "src/convolution/5_2_all_pattern_matching_tree_based.bend")
