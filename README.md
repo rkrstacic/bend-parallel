@@ -1,3 +1,67 @@
+# Paralelizacija operatora konvolucije nad slučajnim varijablama u programskom jeziku Bend
+
+Diplomski rad Autor: Rafael Krstačić
+
+Mentor: doc. dr. sc. Nikola Tanković
+
+Sveučilište Jurja Dobrile u Puli, Fakultet informatike
+
+# Sažetak
+
+Ovaj diplomski rad istražuje računalne aspekte i tehnike optimizacije
+za operator konvolucije nad slučajnim varijablama u programskom jeziku
+Bend, s fokusom na pristupe paralelnog računanja. Konvolucija, temeljna
+operacija u raznim područjima kao što su obrada signala, obrada slike i
+teorija vjerojatnosti, može biti računalno intenzivna, osobito u kontekstu
+velikih skupova podataka. Ovaj rad istražuje različite metode za računalnu
+konvoluciju, fokusirajući se na tehnike diskretne konvolucije, i evaluira njihovu
+izvedbu u paralelnom računalnom okruženju.
+
+Implementirana su dva različita pristupa za izračunavanje konvolucije:
+naivni algoritam kliznog skalarnig produkta i pristup redukcije stabla koji
+je paralelno orijentiran. Obje su metode implementirane u programskom
+jeziku Bend, koji je funkcijski jezik visoke razine dizajniran za paralelno
+izvodenje. Izvedba ovih implementacija analizirana je pomoću Bend-ovih
+Rust i C runtime-ova.
+
+Rezultati pokazuju da je naivni pristup jednostavniji za implementaciju i
+još uvijek je bolji od tehnike redukcije stabla čak i u paralelnim okruženjima,
+budući da algoritam još uvijek nije optimiziran i ima usko grlo. Ovaj diplomski
+rad daje uvid u praktičnu primjenu paralelnog računanja u optimizaciji
+matematičkih operacija i doprinosi širem razumijevanju dizajna paralelnog algoritma.
+
+<b>Ključne riječi</b>: Konvolucija, Paralelno Računanje, Bend programski jezik, Klizni
+Skalarni Produkt, Redukcija Stabla, CPU Višejezgreno Ubrzanje.
+
+# Abstract 
+
+This thesis investigates computational aspects and optimization techniques
+for the convolution operator over random variables in the Bend programming
+language, with a focus on parallel computing approaches. Convolution,
+a fundamental operation in fields as diverse as signal processing,
+image processing, and probability theory, can be computationally intensive,
+especially in the context of large data sets. This paper explores different
+methods for computational convolution, focusing on discrete convolution
+techniques, and evaluates their performance in a parallel computing environment.
+
+Two different approaches are implemented to compute the convolution:
+a naive sliding dot product algorithm and a parallel-oriented tree reduction
+approach. Both methods are implemented in the Bend programming
+language, which is a high-level functional language designed for parallel
+execution. The performance of these implementations was analyzed using
+Bend’s Rust and C runtimes.
+
+The results show that the naive approach is simpler to implement and
+still outperforms the tree reduction technique even in parallel environments,
+since the algorithm is still not optimized and has a bottleneck. This thesis
+provides insight into the practical application of parallel computing in
+the optimization of mathematical operations and contributes to a broader
+understanding of parallel algorithm design.
+
+<b>Keywords</b>: Convolution, Parallel Computing, Bend Programming Language, Sliding
+Dot Product, Tree Reduction, CPU Multi-Core Acceleration.
+
+
 <h1 align=center> Convolution in Parallel </h1>
 
 Convolution is a important operation in mathematics and statistics, widely used in fields such as signal processing, image analysis, and data science. It involves combining two functions to produce a third, expressing how the shape of one is modified by the other. Despite its theoretical simplicity, convolution can be computationally demanding, especially with large datasets.
@@ -15,6 +79,7 @@ You can read more about Bend on the [Bend's official GitHub repository](https://
 - [Challenges](#challenges)
   - [Histogram](#challenge-1)
   - [Convolution](#challenge-2)
+- [Additional information](#additional-information)
 
 # Quick start (macOS)
 
@@ -139,7 +204,7 @@ The challenge here is to compute the convolution of two arrays having the same l
 From what i have learned, there can be x10 speedup on parallel run, so i immediately started working on that. Since i didnt focus on parallel running, i realized that i could make some room for parallel execution just by computing those dot products in parallel since they are the ones with the most computation and they dont depend on other sets, just the one with the same index. So i have changed things to run on a Tree structure, instead of the List, and checked out how it went. This is where i realized that there were some other things to be fixed before i could get any better time. Unfortunately the way i was implementing some of the function that handle more complex iterators then builtin single array iterator, wsa not optimal. I got 17.55s Seq, and
 ~6s Par.
 
-After some investigation, i realized that majority of the computation time was coming from sub-optimal implementation of the Tree/from_list function. After i got and alternative solution that used some tricks to get it optimized, i got the time down to 1.77s Seq and 0.75s Par. I got another improvement on that same function and got the time down to 1.53s Seq and 0.65s Par.
+After some investigation, i realized that majority of the computation time was coming from sub-optimal implementation of the Tree/from_list function. After i got and alternative solution that used some tricks to get it optimized, i got the time down to 1.77s Seq and 0.75s Par. I got another improvement on that same function and got the time down to 0 Seq and 0.65s Par.
 
 I continued the investigation and suspected few more sub-optimal implementations of some other functions. But it wasnt until i went to the source code of the Bend, found golden_tests and then found bunch of .bend test files that taught me how to write better bend. The use of pattern matching for function definition is a thing and it was used a lot. I went to replace the dot product function which i suspected could be improved, and decreased down the time by a lot. With dot product improved the Seq time was 0.32s and Par 0.22s.
 
@@ -249,3 +314,7 @@ Convolution of arrays size: 2048 - 4.16s
 Convolution of arrays size: 4096 - Never finished
 Convolution of arrays size: 8192 - Never finished
 ```
+
+
+# Additional information
+
